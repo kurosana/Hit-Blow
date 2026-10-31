@@ -101,14 +101,38 @@
     return copy.slice(0, take);
   }
 
+  function pickFrom(list, random) {
+    return list[Math.floor(random() * list.length)].slice();
+  }
+
+  function played(history, guess) {
+    for (let i = 0; i < history.length; i++) {
+      if (sameCode(history[i].guess, guess)) return true;
+    }
+    return false;
+  }
+
   /**
-   * 残り候補から次の一手を選ぶ。
-   * 常に正解の可能性が残っている置き方だけを出し、
-   * ときどき情報量の多い手、それ以外は候補から無作為に選んで人間側にも勝機を残す。
+   * 次の一手を選ぶ。history は { guess, hit, blow } の配列。
+   * strong は全ヒントで残った候補から、少ないときは絞る手、多いときは半々。
+   * normal は候補から置く。ときどき直前と同じ置き方を繰り返す。
+   * weak はばらばらに置き、直前と同じ置き方を繰り返しやすい。候補が2つになると当てにいく。
    */
-  function pickCpuGuess(possible, pins, allowDup, rng) {
+  function pickCpuGuess(possible, pins, allowDup, rng, strength, history) {
     const random = rng || Math.random;
+    const level = strength || "strong";
+    const past = history || [];
     if (!possible.length) return randomCode(pins, allowDup, random);
+    if (level === "weak") {
+      if (possible.length <= 2) return pickFrom(possible, random);
+      if (past.length && random() < 0.5) return past[past.length - 1].guess.slice();
+      return randomCode(pins, allowDup, random);
+    }
+    if (level === "normal") {
+      if (possible.length <= 3) return pickFrom(possible, random);
+      if (past.length && random() < 0.22) return past[past.length - 1].guess.slice();
+      return pickFrom(possible, random);
+    }
     if (possible.length === 1) return possible[0].slice();
     const smartChance = possible.length <= 8 ? 1 : 0.52;
     if (random() > smartChance) {
