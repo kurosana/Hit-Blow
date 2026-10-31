@@ -29,7 +29,7 @@
       var saved = JSON.parse(raw);
       if (saved.pins >= 2 && saved.pins <= 6) settings.pins = saved.pins;
       if (typeof saved.allowDup === "boolean") settings.allowDup = saved.allowDup;
-      if (saved.mode === "solo" || saved.mode === "com" || saved.mode === "duo") settings.mode = saved.mode;
+      if (saved.mode === "solo" || saved.mode === "com" || saved.mode === "duo" || saved.mode === "com2") settings.mode = saved.mode;
       if (typeof saved.muted === "boolean") settings.muted = saved.muted;
     } catch (err) { /* 壊れた保存は無視する */ }
   }
@@ -81,7 +81,9 @@
     $("stats-count").textContent = count.toLocaleString("ja-JP") + "通り";
     $("stats-tries").textContent = settings.mode === "solo"
       ? "挑戦は " + limit + " 回まで"
-      : "ふたり合わせて " + limit + " 回（先手が1回多い）";
+      : settings.mode === "com2"
+        ? "合わせて " + limit + " 回（COM1が1回多い）"
+        : "ふたり合わせて " + limit + " 回（先手が1回多い）";
     var note = $("stats-note");
     if (settings.pins === 6 && !settings.allowDup) {
       note.hidden = false;
@@ -163,11 +165,15 @@
 
   function actorNow() {
     if (settings.mode === "solo" || settings.mode === "com") return "you";
+    if (settings.mode === "com2") return state.rows.length % 2 === 0 ? "c1" : "c2";
     return state.rows.length % 2 === 0 ? "p1" : "p2";
   }
 
   function turnText() {
     if (!state || state.over) return "おわり";
+    if (settings.mode === "com2") {
+      return (state.rows.length % 2 === 0 ? "COM1" : "COM2") + "が置いています…";
+    }
     if (state.phase === "cpu") return "COMが置いています…";
     if (settings.mode === "solo") return "ピンを置いてください";
     if (settings.mode === "com") return "あなたのばん";
@@ -177,6 +183,8 @@
   function whoName(by) {
     if (by === "you") return "あなた";
     if (by === "com") return "COM";
+    if (by === "c1") return "COM1";
+    if (by === "c2") return "COM2";
     if (by === "p1") return "1P";
     return "2P";
   }
@@ -237,7 +245,7 @@
   function renderRows(scroll) {
     var host = $("rows");
     var html = "";
-    if (!state.rows.length) {
+    if (!state.rows.length && settings.mode !== "com2") {
       html += '<p class="empty-hint">6色から選んで<br>かくされた並びを置いてください</p>';
     }
     state.rows.forEach(function (row, index) {
@@ -283,10 +291,12 @@
     $("board").style.setProperty("--pins", String(settings.pins));
     var full = state.draft.every(function (c) { return c != null; });
     var playing = state.phase === "input" && !state.over;
+    var watching = settings.mode === "com2";
     $("btn-ok").disabled = !playing || !full;
     $("btn-undo").disabled = !playing;
-    $("actions-play").hidden = !!state.over;
+    $("actions-play").hidden = !!state.over || watching;
     $("actions-end").hidden = !state.over;
+    $("tray").classList.toggle("is-watching", watching);
     renderSecret();
     renderRows(scroll);
     renderPaletteState();
@@ -305,6 +315,8 @@
     if (state.winner === "com") return { title: "COMの勝ち", sub: "COMが" + n + "回目で当てました" };
     if (state.winner === "p1") return { title: "1Pの勝ち！", sub: n + "回目で当てました" };
     if (state.winner === "p2") return { title: "2Pの勝ち！", sub: n + "回目で当てました" };
+    if (state.winner === "c1") return { title: "COM1の勝ち", sub: n + "回目で当てました" };
+    if (state.winner === "c2") return { title: "COM2の勝ち", sub: n + "回目で当てました" };
     if (settings.mode === "solo") return { title: "ざんねん…", sub: "回数のなかでは当たりませんでした" };
     return { title: "ひきわけ", sub: "回数のなかでは、どちらも当たりませんでした" };
   }
@@ -343,7 +355,11 @@
       soundLose();
     }
     var dialog = $("result-dialog");
-    if (!dialog.open) dialog.showModal();
+    if (!dialog.open) {
+      var open = document.querySelector("dialog[open]");
+      if (open) open.close();
+      dialog.showModal();
+    }
     announce(resultCopy().title + "。" + resultCopy().sub);
   }
 
@@ -364,9 +380,11 @@
       return;
     }
     if (settings.mode === "com" && by === "you") {
-      state.phase = "cpu";
-      render(true);
-      runCpu();
+      runCpu("com");
+      return;
+    }
+    if (settings.mode === "com2") {
+      runCpu(by === "c1" ? "c2" : "c1");
       return;
     }
     state.phase = "input";
@@ -377,8 +395,9 @@
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   }
 
-  async function runCpu() {
+  async function runCpu(by) {
     var token = epoch;
+    state.phase = "cpu";
     state.draft = emptyDraft();
     render(true);
     await sleep(reducedMotion ? 20 : 280);
@@ -387,13 +406,14 @@
     for (var i = 0; i < guess.length; i++) {
       await sleep(reducedMotion ? 10 : 120);
       if (token !== epoch) return;
+      state.selected = guess[i];
       state.draft[i] = guess[i];
       soundPlace();
       render(false);
     }
     await sleep(reducedMotion ? 20 : 220);
     if (token !== epoch) return;
-    commit(guess, "com");
+    commit(guess, by);
   }
 
   function startGame() {
@@ -418,6 +438,7 @@
     if (result.open) result.close();
     showScreen("game");
     render(true);
+    if (settings.mode === "com2") runCpu("c1");
   }
 
   function draftFull() {
