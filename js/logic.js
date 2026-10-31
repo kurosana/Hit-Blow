@@ -112,26 +112,84 @@
     return false;
   }
 
+  function fresh(list, past) {
+    const out = [];
+    for (let i = 0; i < list.length; i++) {
+      if (!played(past, list[i])) out.push(list[i]);
+    }
+    return out;
+  }
+
+  function shuffle(list, random) {
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      const tmp = list[i];
+      list[i] = list[j];
+      list[j] = tmp;
+    }
+    return list;
+  }
+
+  /* 1か所だけ別の色に替える。すでに置いた並びには戻さない。 */
+  function tweakOne(last, allowDup, past, random) {
+    const positions = shuffle(last.map(function (_, i) { return i; }), random);
+    for (let p = 0; p < positions.length; p++) {
+      const i = positions[p];
+      const colors = [];
+      for (let c = 0; c < COLOR_COUNT; c++) {
+        if (c === last[i]) continue;
+        if (!allowDup && last.indexOf(c) !== -1) continue;
+        colors.push(c);
+      }
+      shuffle(colors, random);
+      for (let k = 0; k < colors.length; k++) {
+        const code = last.slice();
+        code[i] = colors[k];
+        if (!played(past, code)) return code;
+      }
+    }
+    for (let a = 0; a < positions.length; a++) {
+      for (let b = a + 1; b < positions.length; b++) {
+        const i = positions[a];
+        const j = positions[b];
+        if (last[i] === last[j]) continue;
+        const code = last.slice();
+        code[i] = last[j];
+        code[j] = last[i];
+        if (!played(past, code)) return code;
+      }
+    }
+    return null;
+  }
+
   /**
    * 次の一手を選ぶ。history は { guess, hit, blow } の配列。
    * strong は全ヒントで残った候補から、少ないときは絞る手、多いときは半々。
-   * normal は候補から置く。ときどき直前と同じ置き方を繰り返す。
-   * weak はばらばらに置き、直前と同じ置き方を繰り返しやすい。候補が2つになると当てにいく。
+   * normal は前の置き方から色を一つ動かす。動かし方は、ヒントに合うものを混ぜる。
+   * weak は前の置き方から色を一つ動かす。候補が2つになると、その中から置く。
    */
   function pickCpuGuess(possible, pins, allowDup, rng, strength, history) {
     const random = rng || Math.random;
     const level = strength || "strong";
     const past = history || [];
+    const last = past.length ? past[past.length - 1].guess : null;
     if (!possible.length) return randomCode(pins, allowDup, random);
     if (level === "weak") {
-      if (possible.length <= 2) return pickFrom(possible, random);
-      if (past.length && random() < 0.5) return past[past.length - 1].guess.slice();
-      return randomCode(pins, allowDup, random);
+      const open = fresh(possible, past);
+      if (possible.length <= 2) return pickFrom(open.length ? open : possible, random);
+      if (!last) return randomCode(pins, allowDup, random);
+      const moved = tweakOne(last, allowDup, past, random);
+      return moved || pickFrom(open.length ? open : possible, random);
     }
     if (level === "normal") {
-      if (possible.length <= 3) return pickFrom(possible, random);
-      if (past.length && random() < 0.22) return past[past.length - 1].guess.slice();
-      return pickFrom(possible, random);
+      const open = fresh(possible, past);
+      if (possible.length <= 3) return pickFrom(open.length ? open : possible, random);
+      if (!last) return pickFrom(possible, random);
+      if (random() < 0.62) {
+        const moved = tweakOne(last, allowDup, past, random);
+        if (moved) return moved;
+      }
+      return pickFrom(open.length ? open : possible, random);
     }
     if (possible.length === 1) return possible[0].slice();
     const smartChance = possible.length <= 8 ? 1 : 0.52;
