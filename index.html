@@ -66,7 +66,7 @@
             <h2>勝ち負け</h2>
           </header>
           <p>すべての位置がヒットしたら正解です。ひとりで遊ぶときは、決めた回数までに当てます。</p>
-          <p>COMと勝負、ふたりで遊ぶときは、交互に置きます。置いたピンとヒントは共有で、先にすべて当てた方の勝ちです。先手が1回多く置けます。</p>
+          <p>COMと勝負、ふたりで遊ぶとき、COM同士のときは、交互に置きます。置いたピンとヒントは共有で、先にすべて当てた方の勝ちです。先手が1回多く置けます。COM同士は、COM1とCOM2が勝手に勝負します。</p>
         </article>
       </div>
     </section>
@@ -110,6 +110,10 @@
               <button type="button" class="mode-btn" data-mode="duo" role="radio" aria-checked="false">
                 <span class="mode-name">ふたりで</span>
                 <span class="mode-desc">同じ画面で交互に。ヒントは共有</span>
+              </button>
+              <button type="button" class="mode-btn" data-mode="com2" role="radio" aria-checked="false">
+                <span class="mode-name">COM同士</span>
+                <span class="mode-desc">COMが2人で、勝手に勝負する</span>
               </button>
             </div>
           </fieldset>

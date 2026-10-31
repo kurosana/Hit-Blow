@@ -30,6 +30,8 @@ assert.equal(HB.allCodes(6, false).length, 720);
 for (let pins = 2; pins <= 6; pins++) {
   assert.equal(HB.turnLimit(pins, "com", false) % 2, 1);
   assert.equal(HB.turnLimit(pins, "duo", true) % 2, 1);
+  assert.equal(HB.turnLimit(pins, "com2", false) % 2, 1);
+  assert.equal(HB.turnLimit(pins, "com2", false), HB.turnLimit(pins, "com", false));
   assert.ok(HB.turnLimit(pins, "solo", false) >= pins);
 }
 

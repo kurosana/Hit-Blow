@@ -684,9 +684,14 @@ button:focus-visible {
 }
 
 .row[data-by="you"] .row-num,
-.row[data-by="p1"] .row-num { color: #b1332c; }
+.row[data-by="p1"] .row-num,
+.row[data-by="c1"] .row-num { color: #b1332c; }
 .row[data-by="com"] .row-num { color: #1d7a42; }
-.row[data-by="p2"] .row-num { color: #1d4fa3; }
+.row[data-by="p2"] .row-num,
+.row[data-by="c2"] .row-num { color: #1d4fa3; }
+
+.tray.is-watching .palette { pointer-events: none; }
+.tray.is-watching .key-hint { display: none; }
 
 .row-pegs {
   width: min(100%, calc(var(--pins) * 44px));
