@@ -84,8 +84,8 @@
       btn.setAttribute("aria-checked", on ? "true" : "false");
     });
     var strengthNotes = {
-      weak: "ばらばらに置いて、同じ置き方も繰り返します",
-      normal: "ヒントは見ますが、ときどき同じ置き方を繰り返します",
+      weak: "前の色を見ながら、少しずつ入れ替えます",
+      normal: "ヒントを見ながら、少しずつ動かします",
       strong: "いまのCOMです。ヒントを全部使って絞ります",
     };
     $("strength-note").textContent = strengthNotes[settings.strength];

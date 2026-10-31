@@ -66,6 +66,7 @@ assert.equal(HB.pickCpuGuess(possible, 4, false, zero, "weak").length, 4);
 
 function soloAvg(strength, trials) {
   let sum = 0;
+  let repeats = 0;
   for (let t = 0; t < trials; t++) {
     const secret = HB.randomCode(4, false);
     let left = HB.allCodes(4, false);
@@ -74,6 +75,7 @@ function soloAvg(strength, trials) {
     while (n < 40) {
       n++;
       const g = HB.pickCpuGuess(left, 4, false, Math.random, strength, rows);
+      if (rows.some((row) => HB.sameCode(row.guess, g))) repeats++;
       const s = HB.score(g, secret);
       rows.push({ guess: g, hit: s.hit, blow: s.blow });
       if (s.hit === 4) break;
@@ -81,12 +83,13 @@ function soloAvg(strength, trials) {
     }
     sum += n;
   }
+  assert.equal(repeats, 0, strength + " repeated a guess");
   return sum / trials;
 }
 const strongAvg = soloAvg("strong", 50);
 const normalAvg = soloAvg("normal", 50);
 const weakAvg = soloAvg("weak", 50);
-assert.ok(strongAvg + 0.25 < normalAvg, `strong ${strongAvg} normal ${normalAvg}`);
+assert.ok(strongAvg + 0.35 < normalAvg, `strong ${strongAvg} normal ${normalAvg}`);
 assert.ok(normalAvg + 1 < weakAvg, `normal ${normalAvg} weak ${weakAvg}`);
 
 let overflow = 0;
