@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ヒット＆ブロー</title>
+  <meta name="description" content="ピンの数を2〜6で選べるヒット＆ブロー。色と位置を推理して当てるゲームです。">
+  <meta name="theme-color" content="#6b4124">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <section id="screen-title" class="screen active">
+      <div class="start-hero">
+        <p class="eyebrow">色と位置を当てる推理</p>
+        <h1 class="plaque">ヒット＆ブロー</h1>
+        <div class="hero-mark" aria-hidden="true">
+          <div class="hero-pegs">
+            <i class="peg" style="--peg:#e43636;--peg-dark:#8e1c1c"></i>
+            <i class="peg" style="--peg:#f5c400;--peg-dark:#b08a00"></i>
+            <i class="peg" style="--peg:#2fa84a;--peg-dark:#146b28"></i>
+            <i class="peg" style="--peg:#2f6fe0;--peg-dark:#1a3f86"></i>
+          </div>
+          <div class="hero-score" aria-hidden="true">
+            <i class="mini mini-hit"></i>
+            <i class="mini mini-hit"></i>
+            <i class="mini mini-blow"></i>
+            <i class="mini mini-hole"></i>
+          </div>
+        </div>
+        <p class="hero-lead">ピンの数は、2〜6の好きな本数</p>
+        <button type="button" class="btn-play" id="btn-to-setup">あそぶ</button>
+        <a class="scroll-cue" href="#rules">
+          <span>あそびかた</span>
+          <span class="chevron" aria-hidden="true"></span>
+        </a>
+      </div>
+
+      <div class="rules" id="rules">
+        <article class="rule-phase">
+          <header class="rule-phase-head">
+            <span class="rule-phase-num">01</span>
+            <h2>ピンを置く</h2>
+          </header>
+          <p>かくされたピンの、<strong>色と並び</strong>を当てます。使える色は6色。赤、黄、緑、青、ピンク、白です。</p>
+          <p>置く本数は<strong>2〜6</strong>から選べます。同色なしなら、同じ色は1本まで。同色ありなら、同じ色が重なっても答えになります。</p>
+        </article>
+        <article class="rule-phase">
+          <header class="rule-phase-head">
+            <span class="rule-phase-num">02</span>
+            <h2>ヒント</h2>
+          </header>
+          <p class="hint-line"><i class="mini mini-hit" aria-hidden="true"></i><span><strong>赤い小さなピンはヒット。</strong>色も位置も当たっています。</span></p>
+          <p class="hint-line"><i class="mini mini-blow" aria-hidden="true"></i><span><strong>白い小さなピンはブロー。</strong>色は当たっていますが、位置が違います。</span></p>
+          <p>小さなピンの並びは、どのピンが当たったかまでは教えてくれません。数だけがヒントです。</p>
+        </article>
+        <article class="rule-phase">
+          <header class="rule-phase-head">
+            <span class="rule-phase-num">03</span>
+            <h2>勝ち負け</h2>
+          </header>
+          <p>すべての位置がヒットしたら正解です。ひとりで遊ぶときは、決めた回数までに当てます。</p>
+          <p>COMと勝負、ふたりで遊ぶときは、交互に置きます。置いたピンとヒントは共有で、先にすべて当てた方の勝ちです。先手が1回多く置けます。</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="screen-setup" class="screen">
+      <button type="button" class="btn-back" id="btn-back-title">もどる</button>
+      <div class="setup-wrap">
+        <div class="sheet setup-card">
+          <h1 class="setup-title">ルール</h1>
+
+          <fieldset class="field">
+            <legend>ピンの数 <span class="legend-note">4が定番</span></legend>
+            <div class="pin-row" role="radiogroup" aria-label="ピンの数">
+              <button type="button" class="pin-btn" data-pins="2" role="radio" aria-checked="false">2</button>
+              <button type="button" class="pin-btn" data-pins="3" role="radio" aria-checked="false">3</button>
+              <button type="button" class="pin-btn is-on" data-pins="4" role="radio" aria-checked="true">4</button>
+              <button type="button" class="pin-btn" data-pins="5" role="radio" aria-checked="false">5</button>
+              <button type="button" class="pin-btn" data-pins="6" role="radio" aria-checked="false">6</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>同じ色</legend>
+            <div class="seg" role="radiogroup" aria-label="同じ色">
+              <button type="button" class="dup-btn is-on" data-dup="0" role="radio" aria-checked="true">同色なし</button>
+              <button type="button" class="dup-btn" data-dup="1" role="radio" aria-checked="false">同色あり</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>あいて</legend>
+            <div class="mode-col" role="radiogroup" aria-label="あいて">
+              <button type="button" class="mode-btn is-on" data-mode="solo" role="radio" aria-checked="true">
+                <span class="mode-name">ひとりで</span>
+                <span class="mode-desc">自分だけで解く</span>
+              </button>
+              <button type="button" class="mode-btn" data-mode="com" role="radio" aria-checked="false">
+                <span class="mode-name">COMと勝負</span>
+                <span class="mode-desc">交互に置いて、先に当てた方の勝ち</span>
+              </button>
+              <button type="button" class="mode-btn" data-mode="duo" role="radio" aria-checked="false">
+                <span class="mode-name">ふたりで</span>
+                <span class="mode-desc">同じ画面で交互に。ヒントは共有</span>
+              </button>
+            </div>
+          </fieldset>
+
+          <div class="stats sheet-inset" aria-live="polite">
+            <div id="preview" class="preview" aria-hidden="true"></div>
+            <p id="stats-rule" class="stats-rule">6色から 4 本 · 同じ色は使わない</p>
+            <p id="stats-count" class="stats-count">360通り</p>
+            <p id="stats-tries" class="stats-tries">挑戦は 10 回まで</p>
+            <p id="stats-note" class="stats-note" hidden></p>
+          </div>
+
+          <button type="button" class="btn-play btn-play-block" id="btn-start">このルールであそぶ</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-game" class="screen">
+      <header class="game-bar">
+        <button type="button" class="btn-back" id="btn-back-game">もどる</button>
+        <div class="game-bar-title">
+          <strong>ヒット＆ブロー</strong>
+          <span id="game-sub">4ピン · 同色なし · 0/10</span>
+        </div>
+        <button type="button" class="icon-btn" id="btn-mute" aria-pressed="false" aria-label="おとをけす">
+          <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" id="icon-sound">
+            <path fill="currentColor" d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-help" aria-label="あそびかた">？</button>
+      </header>
+      <div class="game-body">
+        <div class="mat">
+          <div class="board" id="board" data-pins="4">
+            <div class="secret" id="secret">
+              <div class="lid" id="lid"><span>こたえ</span></div>
+              <div class="secret-inner">
+                <span class="row-num" aria-hidden="true"></span>
+                <div id="secret-pegs" class="row-pegs"></div>
+                <div class="minis-wrap" aria-hidden="true"></div>
+              </div>
+            </div>
+            <div id="board-scroll">
+              <div id="rows"></div>
+            </div>
+          </div>
+        </div>
+        <aside class="tray" id="tray">
+          <p id="turn-label" class="turn-label">ピンを置いてください</p>
+          <div id="palette" class="palette"></div>
+          <p class="key-hint">キーの 1〜6 で色、Enter でけってい</p>
+          <div class="tray-actions" id="actions-play">
+            <button type="button" class="btn-wood" id="btn-undo">けす</button>
+            <button type="button" class="btn-go" id="btn-ok" disabled>けってい</button>
+          </div>
+          <div class="tray-actions" id="actions-end" hidden>
+            <button type="button" class="btn-wood" id="btn-setup">せってい</button>
+            <button type="button" class="btn-go" id="btn-retry">もういちど</button>
+          </div>
+        </aside>
+      </div>
+      <p id="live" class="sr" aria-live="polite"></p>
+    </section>
+  </div>
+
+  <div id="toast" role="status"></div>
+  <div id="ghost" class="peg ghost" hidden></div>
+  <div id="confetti" aria-hidden="true"></div>
+
+  <dialog id="help-dialog">
+    <div class="sheet dialog-card">
+      <h2>あそびかた</h2>
+      <p class="hint-line"><i class="mini mini-hit" aria-hidden="true"></i><span><strong>ヒット</strong> … 色も位置も正解</span></p>
+      <p class="hint-line"><i class="mini mini-blow" aria-hidden="true"></i><span><strong>ブロー</strong> … 色だけ正解</span></p>
+      <p>小さなピンは本数だけのヒントです。どの場所がヒットかは分かりません。</p>
+      <p>色のボタンを押すと、空いている穴へ左から入ります。置いたピンを押すと、その穴だけ外れます。ドラッグして入れ替えることもできます。</p>
+      <button type="button" class="btn-play btn-play-block" id="btn-help-close">わかった</button>
+    </div>
+  </dialog>
+
+  <dialog id="leave-dialog">
+    <div class="sheet dialog-card">
+      <h2>せっていに戻る？</h2>
+      <p>いまの対局は消えます。</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-wood" id="btn-leave-cancel">つづける</button>
+        <button type="button" class="btn-go" id="btn-leave-ok">戻る</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="result-dialog">
+    <div class="sheet dialog-card">
+      <h2 id="result-title">せいかい！</h2>
+      <p id="result-sub"></p>
+      <div id="result-pegs" class="result-pegs"></div>
+      <div class="dialog-actions">
+        <button type="button" class="btn-wood" id="btn-result-setup">せってい</button>
+        <button type="button" class="btn-go" id="btn-result-retry">もういちど</button>
+      </div>
+    </div>
+  </dialog>
+
+  <noscript><p class="noscript">このゲームを遊ぶには JavaScript を有効にしてください。</p></noscript>
+  <script src="js/logic.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
