@@ -118,6 +118,16 @@
             </div>
           </fieldset>
 
+          <fieldset class="field" id="field-strength" hidden>
+            <legend>COMの強さ</legend>
+            <div class="seg seg-3" role="radiogroup" aria-label="COMの強さ">
+              <button type="button" class="strength-btn" data-strength="weak" role="radio" aria-checked="false">弱</button>
+              <button type="button" class="strength-btn" data-strength="normal" role="radio" aria-checked="false">普</button>
+              <button type="button" class="strength-btn is-on" data-strength="strong" role="radio" aria-checked="true">強</button>
+            </div>
+            <p id="strength-note" class="strength-note">いまのCOMです。ヒントを全部使って絞ります</p>
+          </fieldset>
+
           <div class="stats sheet-inset" aria-live="polite">
             <div id="preview" class="preview" aria-hidden="true"></div>
             <p id="stats-rule" class="stats-rule">6色から 4 本 · 同じ色は使わない</p>

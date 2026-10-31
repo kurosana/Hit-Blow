@@ -56,6 +56,39 @@ assert.ok(possible.some((c) => HB.sameCode(c, loose)));
 const only = HB.pickCpuGuess([[2, 0, 1, 3]], 4, false, zero);
 assert.deepEqual(only, [2, 0, 1, 3]);
 
+function inPossible(guess, list) {
+  assert.ok(list.some((c) => HB.sameCode(c, guess)), guess.join(","));
+}
+for (let t = 0; t < 12; t++) {
+  inPossible(HB.pickCpuGuess(possible, 4, false, Math.random, "strong"), possible);
+}
+assert.equal(HB.pickCpuGuess(possible, 4, false, zero, "weak").length, 4);
+
+function soloAvg(strength, trials) {
+  let sum = 0;
+  for (let t = 0; t < trials; t++) {
+    const secret = HB.randomCode(4, false);
+    let left = HB.allCodes(4, false);
+    const rows = [];
+    let n = 0;
+    while (n < 40) {
+      n++;
+      const g = HB.pickCpuGuess(left, 4, false, Math.random, strength, rows);
+      const s = HB.score(g, secret);
+      rows.push({ guess: g, hit: s.hit, blow: s.blow });
+      if (s.hit === 4) break;
+      left = HB.filterPossible(left, g, s.hit, s.blow);
+    }
+    sum += n;
+  }
+  return sum / trials;
+}
+const strongAvg = soloAvg("strong", 50);
+const normalAvg = soloAvg("normal", 50);
+const weakAvg = soloAvg("weak", 50);
+assert.ok(strongAvg + 0.25 < normalAvg, `strong ${strongAvg} normal ${normalAvg}`);
+assert.ok(normalAvg + 1 < weakAvg, `normal ${normalAvg} weak ${weakAvg}`);
+
 let overflow = 0;
 for (let t = 0; t < 200; t++) {
   const a = HB.randomCode(5, true);

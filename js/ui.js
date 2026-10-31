@@ -11,7 +11,7 @@
     { name: "しろ", hex: "#f7f4ee", dark: "#c9c2b4", light: true, mark: "○" },
   ];
 
-  var settings = { pins: 4, allowDup: false, mode: "solo", muted: false };
+  var settings = { pins: 4, allowDup: false, mode: "solo", strength: "strong", muted: false };
   var state = null;
   var epoch = 0;
   var justCommitted = false;
@@ -30,6 +30,7 @@
       if (saved.pins >= 2 && saved.pins <= 6) settings.pins = saved.pins;
       if (typeof saved.allowDup === "boolean") settings.allowDup = saved.allowDup;
       if (saved.mode === "solo" || saved.mode === "com" || saved.mode === "duo" || saved.mode === "com2") settings.mode = saved.mode;
+      if (saved.strength === "weak" || saved.strength === "normal" || saved.strength === "strong") settings.strength = saved.strength;
       if (typeof saved.muted === "boolean") settings.muted = saved.muted;
     } catch (err) { /* 壊れた保存は無視する */ }
   }
@@ -75,6 +76,19 @@
       btn.classList.toggle("is-on", on);
       btn.setAttribute("aria-checked", on ? "true" : "false");
     });
+    var usesCom = settings.mode === "com" || settings.mode === "com2";
+    $("field-strength").hidden = !usesCom;
+    document.querySelectorAll(".strength-btn").forEach(function (btn) {
+      var on = btn.dataset.strength === settings.strength;
+      btn.classList.toggle("is-on", on);
+      btn.setAttribute("aria-checked", on ? "true" : "false");
+    });
+    var strengthNotes = {
+      weak: "ばらばらに置いて、同じ置き方も繰り返します",
+      normal: "ヒントは見ますが、ときどき同じ置き方を繰り返します",
+      strong: "いまのCOMです。ヒントを全部使って絞ります",
+    };
+    $("strength-note").textContent = strengthNotes[settings.strength];
     var count = HB.comboCount(settings.pins, settings.allowDup);
     var limit = HB.turnLimit(settings.pins, settings.mode, settings.allowDup);
     $("stats-rule").textContent = "6色から " + settings.pins + " 本 · " + (settings.allowDup ? "同じ色が重なってもよい" : "同じ色は使わない");
@@ -285,7 +299,11 @@
 
   function render(scroll) {
     var dup = settings.allowDup ? "同色あり" : "同色なし";
-    $("game-sub").textContent = settings.pins + "ピン · " + dup + " · " + state.rows.length + "/" + state.maxTurns;
+    var strengthMark = "";
+    if (settings.mode === "com" || settings.mode === "com2") {
+      strengthMark = " · " + ({ weak: "弱", normal: "普", strong: "強" })[settings.strength];
+    }
+    $("game-sub").textContent = settings.pins + "ピン · " + dup + strengthMark + " · " + state.rows.length + "/" + state.maxTurns;
     $("turn-label").textContent = turnText();
     $("board").dataset.pins = String(settings.pins);
     $("board").style.setProperty("--pins", String(settings.pins));
@@ -402,7 +420,7 @@
     render(true);
     await sleep(reducedMotion ? 20 : 280);
     if (token !== epoch) return;
-    var guess = HB.pickCpuGuess(state.possible, settings.pins, settings.allowDup);
+    var guess = HB.pickCpuGuess(state.possible, settings.pins, settings.allowDup, undefined, settings.strength, state.rows);
     for (var i = 0; i < guess.length; i++) {
       await sleep(reducedMotion ? 10 : 120);
       if (token !== epoch) return;
@@ -689,6 +707,13 @@
     document.querySelectorAll(".mode-btn").forEach(function (btn) {
       btn.addEventListener("click", function () {
         settings.mode = btn.dataset.mode;
+        saveSettings();
+        updateSetup();
+      });
+    });
+    document.querySelectorAll(".strength-btn").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        settings.strength = btn.dataset.strength;
         saveSettings();
         updateSetup();
       });
